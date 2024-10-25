@@ -61,11 +61,11 @@ const BreedDetail = ({ params, animalType }: Props) => {
   }
 
   return (
-    <div className="flex justify-center items-center p-4 sm:p-6 md:p-8 lg:p-16">
+    <div className="flex justify-center items-center py-6  sm:p-6 md:p-8 lg:p-16">
       <div className="relative flex flex-col w-full max-w-6xl gap-4 sm:gap-6 bg-white/80 rounded-xl border border-gray-300 shadow-xl p-6 sm:p-8 md:p-10 backdrop-blur-md">
         <button
           onClick={() => router.push("/")}
-          className="absolute -top-10 sm:-top-12 left-0 flex items-center py-1 px-1 text-black"
+          className="absolute -top-12 sm:-top-14 left-0 flex items-center py-1 px-1 text-black"
           title="Go back"
         >
           <span className="text-3xl sm:text-4xl">&#x2190;</span>
