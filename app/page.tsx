@@ -1,57 +1,75 @@
-"use client";
-
-import CardList from "@/components/CardList";
-import { useState, useEffect } from "react";
+import React from "react";
 import { AnimalCard } from "./types/AnimalCard";
-import Search from "@/components/Search";
+import Main from "@/components/Main";
 import { shuffleArray } from "@/utils/shuffleArray";
 
-const Home: React.FC = () => {
-  const [originalCards, setOriginalCards] = useState<AnimalCard[]>([]);
-  const [cards, setCards] = useState<AnimalCard[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+async function fetchAnimals(): Promise<AnimalCard[]> {
+  const apiKeyCats = process.env.CAT_API_KEY;
+  const apiKeyDogs = process.env.CAT_API_KEY;
 
-  const fetchAnimals = async () => {
-    setLoading(true);
-    try {
-      // Getting cats info
-      const responseCats = await fetch("/api/cats");
-      if (!responseCats.ok) {
-        throw new Error("responseCats is not ok");
-      }
-      const dataCats: AnimalCard[] = await responseCats.json();
+  const urlCats = "https://api.thecatapi.com/v1/breeds?limit=15";
+  const urlDogs = "https://api.thedogapi.com/v1/breeds?limit=15";
 
-      // Getting dogs info
-      const responseDogs = await fetch("/api/dogs");
-      if (!responseDogs.ok) {
-        throw new Error("responseDogs is not ok");
-      }
-      const dataDogs: AnimalCard[] = await responseDogs.json();
+  try {
+    const [resCats, resDogs] = await Promise.all([
+      fetch(urlCats, { headers: { "x-api-key": apiKeyCats || "" } }),
+      fetch(urlDogs, { headers: { "x-api-key": apiKeyDogs || "" } }),
+    ]);
 
-      // combining dogs and cats
-      const combinedAnimals = [...dataCats, ...dataDogs];
-      const shuffledAnimals = shuffleArray(combinedAnimals);
-
-      setOriginalCards(shuffledAnimals);
-      setCards(shuffledAnimals);
-    } catch (error) {
-      console.error("Error fetching animal info:", error);
-      setError("Failed to load animal information. Please try again later.");
-    } finally {
-      setLoading(false);
+    if (!resCats.ok || !resDogs.ok) {
+      throw new Error("Failed to fetch data from cat or dog API");
     }
-  };
 
-  useEffect(() => {
-    fetchAnimals();
-  }, []);
+    const dataCats = await resCats.json();
+    const dataDogs = await resDogs.json();
 
-  const filterCards = (searchText: string) => {
-    const regex = new RegExp(searchText, "i");
-    const filteredCards = originalCards.filter((card) => regex.test(card.name));
-    setCards(filteredCards.length > 0 ? filteredCards : originalCards);
-  };
+    const formattedCats: AnimalCard[] = dataCats.map((cat: any) => ({
+      id: cat.id,
+      name: cat.name,
+      image: cat.image?.url || "",
+      type: "cat",
+    }));
+
+    const formattedDogs: AnimalCard[] = await Promise.all(
+      dataDogs.map(async (dog: any) => {
+        const imageResponse = await fetch(
+          `https://api.thedogapi.com/v1/images/search?breed_ids=${dog.id}&limit=1`,
+          { headers: { "x-api-key": apiKeyDogs || "" } }
+        );
+
+        const imageData = await imageResponse.json();
+        const imageUrl = imageData[0]?.url || "";
+
+        return {
+          id: dog.id,
+          name: dog.name,
+          image: imageUrl,
+          type: "dog",
+        };
+      })
+    );
+
+    const combinedAnimals = shuffleArray([...formattedCats, ...formattedDogs]);
+    return combinedAnimals;
+  } catch (error) {
+    console.error("Error fetching animal info:", error);
+    throw new Error("Failed to load animal information.");
+  }
+}
+
+const Home = async () => {
+  let cards: AnimalCard[] = [];
+
+  try {
+    cards = await fetchAnimals();
+  } catch (error) {
+    console.error("Error loading animals:", error);
+    return (
+      <div className="text-red-500 text-xl">
+        Failed to load animal information. Please try again later.
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -60,9 +78,7 @@ const Home: React.FC = () => {
           You can find the breed information inside of these cards
         </p>
 
-        <Search onSearch={filterCards} />
-
-        <CardList cards={cards} loading={loading} error={error} />
+        <Main initialCards={cards} />
       </section>
     </div>
   );

@@ -2,9 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import "swiper/css";
-@import "swiper/css/navigation";
-
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -23,13 +20,21 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.swiper-button-next,
-.swiper-button-prev {
-  color: white !important;
-  transition: transform 0.2s ease, color 0.2s ease;
+::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
 }
 
-.swiper-button-next:hover,
-.swiper-button-prev:hover {
-  transform: scale(1.2);
+::-webkit-scrollbar-thumb {
+  border-radius: 1rem;
+  background: #5e5e61;
+  transition: all 0.5s ease-in-out;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: black;
+}
+
+::-webkit-scrollbar-track {
+  background: white;
 }

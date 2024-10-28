@@ -1,8 +1,12 @@
-"use client";
 import BreedDetail from "@/components/BreedCard";
+import getBreedDetails from "@/utils/getBreedDetails";
 
-const DogDetail = ({ params }: { params: Promise<{ id: string }> }) => {
-  return <BreedDetail params={params} animalType="dogs" />;
-};
-
-export default DogDetail;
+export default async function CatDetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const { id } = await params;
+  const breed = await getBreedDetails(id, 'dog');
+  return <BreedDetail breed={breed} />;
+}
